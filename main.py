@@ -55,7 +55,32 @@ def PantallaInicial(window, Inicio):
             labelFile.config(text = "Data Base File Selected")
             # Se coloca esto para poder permitir que se elijan los años
             # (FALTA) Solo aparezcan años con registro
+            
             enableYear()
+    
+    def obtainData():
+        #Se quiere obtener los años disponibles para solo mostrar esos
+        conection = sqlite3.connect(variable_archivo.get())
+        cursor = conection.cursor()
+        #Se obtiene la ultima ves que sono a partir de tabla Track
+        cursor.execute('SELECT timeLastPlayed FROM Track')
+        results = cursor.fetchall()
+        
+        #Estan en formato Unix, se convierten
+        UnixFormat = []
+        for result in results:
+            UnixFormat.append(result[0])
+        dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
+        dtString = []
+        
+        for date in dates:
+            dtString += [date.strftime("%Y-%m-%d %H:%M:%S")]
+        
+        #print(dtString)
+        # en dtString estan todas las fechas
+        # Ahora se va a proceder a obtener solamente los años
+        
+        return dtString
             
         
     # Obtiene la direccion del archivo como un string 
@@ -190,11 +215,60 @@ def PantallaInicial(window, Inicio):
         combo_day.config(state = "disabled")
     
     # Meses
+    def onMonthSelected(event):
+        selectedYear = combo_year.get()
+        selectedMonth = combo_month.get()
+        #Lo siguiente que ocupo es en ves del nombre del mes, el numero
+        months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        numberMonth = months.index(selectedMonth) + 1
+        #Ahora se obtienen los datos de la DB
+        dtString = obtainData()
+        #print(dtString)
+        #Se va a a montar un string con la misma estructura que los de la DB para comprarar
+        comparisonString = ""
+        comparisonString += str(selectedYear) + "-"
+        #Ahora se va a agregar el mes
+        numberCompMonth = ""
+        if numberMonth < 10:
+            numberCompMonth += "0"
+            numberCompMonth += str(numberMonth)
+        else:
+            numberCompMonth += str(numberMonth)
+        comparisonString += numberCompMonth
+        #print(comparisonString)
+        #Ahora se quiere ver de dtString cuales tienen ese año y ese mes
+        lstDatesMonthYear = []
+        for i in dtString:
+            if comparisonString in i:
+                lstDatesMonthYear.append(i)
+        #print(lstDatesMonthYear)
+        finalDays = []
+        for dates in lstDatesMonthYear:
+            if int(dates[8:10]) not in finalDays:
+                finalDays.append(int(dates[8:10]))
+        #print(finalDays)
+        #Ahora se pone esa informacion en el combobox
+        combo_day.config(values = finalDays)
+        enableDay()
+            
+            
+        
+        
+        #print(selectedYear, selectedMonth)
+        #Ahora se quiere obtener los dias de ese mes y año en los cuales hay un Track
+        
+        
+        
+        enableDay()
+        
     months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     months_label = tk.Label(window, text = "Month:")
     months_label.place(x = 80, y = 350)
     combo_month = ttk.Combobox(window, values = months, state = "disabled")
     combo_month.place(x = 80, y = 375)
+    
+    #Bind to onMonthSelected
+    combo_month.bind("<<ComboboxSelected>>", onMonthSelected)
     
     def enableMonth():
         combo_month.config(state = "readonly")
@@ -206,8 +280,30 @@ def PantallaInicial(window, Inicio):
     # Years
     def onYearSelected(event):
         selectedValue = combo_year.get()
+        
+        #A partir del year selected quiero los months selected
+        #Con eso voy a actualizar la lista de meses
+        
+        dtString = obtainData()
+        #print(dtString, type(selectedValue))
+        numberMonths = []
+        
+        for info in dtString:
+            if selectedValue in info:
+                #print(info[5:7])
+                if int(info[5:7]) not in numberMonths:
+                    numberMonths.append(int(info[5:7]))
+        #print(numberMonths)
+        months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        newMonths = []
+        for i in numberMonths:
+            newMonths.append(months[i - 1])
+        
+        #print(newMonths)
+        combo_month.config(values = newMonths)
+        
         enableMonth()
-        print("Selected value: ", selectedValue)
+        #print("Selected value: ", selectedValue)
     
     years = [str(i) for i in range(1990, 2030)]
     years_label = tk.Label(window, text = "Year:")
@@ -219,27 +315,7 @@ def PantallaInicial(window, Inicio):
     combo_year.bind("<<ComboboxSelected>>", onYearSelected)
     
     def enableYear():
-        #Se quiere obtener los años disponibles para solo mostrar esos
-        conection = sqlite3.connect(variable_archivo.get())
-        cursor = conection.cursor()
-        #Se obtiene la ultima ves que sono a partir de tabla Track
-        cursor.execute('SELECT timeLastPlayed FROM Track')
-        results = cursor.fetchall()
-        
-        #Estan en formato Unix, se convierten
-        UnixFormat = []
-        for result in results:
-            UnixFormat.append(result[0])
-        dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
-        dtString = []
-        
-        for date in dates:
-            dtString += [date.strftime("%Y-%m-%d %H:%M:%S")]
-        
-        #print(dtString)
-        # en dtString estan todas las fechas
-        # Ahora se va a proceder a obtener solamente los años
-        
+        dtString = obtainData()
         yearsWithTrack = []
         for year in dtString:
             if int(year[0:4]) in yearsWithTrack:
