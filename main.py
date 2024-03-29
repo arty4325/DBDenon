@@ -11,6 +11,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import sqlite3
 
+from collections import defaultdict
 
 
 
@@ -56,6 +57,8 @@ def PantallaInicial(window, Inicio):
     DataB = tk.Button(Inicio, command = SelectFile, text = "Search File")
     DataB.place(x = 80, y = 200)
     
+    
+    
     def ObtainDate():
         daySelected = combo_day.get()
         monthSelected = combo_month.get()
@@ -84,6 +87,24 @@ def PantallaInicial(window, Inicio):
                 labelResult.config(text = "One option is empty, need a complete date")
                 
     def ObtainSongs():
+        # Quiero obtener en el formato establecido la fecha
+        dateResult = labelResult.cget("text")
+        separateData = dateResult.split()
+        selectedDay = int(separateData[2])
+        months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        strMonth = separateData[3]
+        selectedMonth = months.index(strMonth) + 1
+        selectedYear = int(separateData[4])
+        
+        #print(selectedDay, selectedMonth, selectedYear)
+        if selectedMonth < 10:
+            finalStructure = str(selectedYear) + "-" + "0" +str(selectedMonth) + "-" + str(selectedDay)
+        else:
+            finalStructure = str(selectedYear) + "-" + str(selectedMonth) + "-" + str(selectedDay)
+            
+        
+        
+        
         conection = sqlite3.connect(variable_archivo.get())
         cursor = conection.cursor()
         cursor.execute('SELECT timeLastPlayed FROM Track')
@@ -94,8 +115,74 @@ def PantallaInicial(window, Inicio):
             UnixFormat.append(result[0])
         
         dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
+        #for date in dates:
+        #    print(date)
+        #print(dates[0])
+       
+                
+        #print(dates)
+        dtString = []
+        for date in dates:
+            dtString += [date.strftime("%Y-%m-%d %H:%M:%S")]
+        #dtString = dates[0].strftime("%Y-%m-%d %H:%M:%S")
         
-        #print(variable_archivo.get())
+        keyList = []
+        for date in dtString:
+            if finalStructure in date:
+                
+                print(True)
+                keyList.append(dtString.index(date))
+                #print(date)
+                
+        #print(dates)
+        #print(dtString)
+        #print(finalStructure)
+        print(keyList)
+        
+        timeMarks = []
+        for i in keyList:
+            print(results[i][0])
+            timeMarks.append(results[i][0])
+            
+        #Ahora se van a hacer unas consultas para obtener los nombres de las canciones
+        songNames = []
+        placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+        cursor.execute("SELECT title, artist FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+        finalResults = cursor.fetchall()
+        
+        for result in finalResults:
+            print(result)
+        
+        #Borrar lo que esta en el textBox 
+        
+        TextBox.config(state = 'normal')
+        
+        Counter = 1
+        for result in finalResults:
+            print(result[0])
+            subResult = result[0].split()
+            finResult = subResult[2:]
+            
+            finalStr = ""
+            print(finResult)
+            for i in finResult:
+                finalStr += i + " "
+            print(finalStr)
+            
+            
+            TextBox.insert(tk.END, str(Counter) + " - " + result[1] + " - " + finalStr + "\n")
+            Counter += 1
+        
+        TextBox.config(state = "disabled")
+        
+        
+            
+        print(songNames)
+        
+        
+        
+        
+        
     
         
     # Dias
@@ -135,7 +222,7 @@ def PantallaInicial(window, Inicio):
     
     
     # Este es el text box en el cual se va a colocar la informacoin que viene del DB
-    TextBox = tk.Text(window, width = 50, height = 25)
+    TextBox = tk.Text(window, width = 75, height = 25)
     TextBox.insert(tk.END, "")
     TextBox.config(state = 'disabled')
     TextBox.place(x = 350, y = 150)
