@@ -53,6 +53,9 @@ def PantallaInicial(window, Inicio):
             variable_archivo.set(archivo)
             print(variable_archivo.get())
             labelFile.config(text = "Data Base File Selected")
+            # Se coloca esto para poder permitir que se elijan los años
+            # (FALTA) Solo aparezcan años con registro
+            enableYear()
             
         
     # Obtiene la direccion del archivo como un string 
@@ -176,24 +179,81 @@ def PantallaInicial(window, Inicio):
     # Dias
     days = [str(i) for i in range(1, 32)]
     days_label = tk.Label(window, text = "Day:")
-    days_label.place(x = 80, y = 300)
-    combo_day = ttk.Combobox(window, values= days, state = "readonly")
-    combo_day.place(x = 80, y = 325)
+    days_label.place(x = 80, y = 400)
+    combo_day = ttk.Combobox(window, values= days, state = "disabled")
+    combo_day.place(x = 80, y = 425)
+    
+    def enableDay():
+        combo_day.config(state = "readonly")
+    
+    def disableDay():
+        combo_day.config(state = "disabled")
     
     # Meses
     months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     months_label = tk.Label(window, text = "Month:")
     months_label.place(x = 80, y = 350)
-    combo_month = ttk.Combobox(window, values = months, state = "readonly")
+    combo_month = ttk.Combobox(window, values = months, state = "disabled")
     combo_month.place(x = 80, y = 375)
+    
+    def enableMonth():
+        combo_month.config(state = "readonly")
+    
+    def disableMonth():
+        combo_month.config(state = "disabled")
     
     
     # Years
+    def onYearSelected(event):
+        selectedValue = combo_year.get()
+        enableMonth()
+        print("Selected value: ", selectedValue)
+    
     years = [str(i) for i in range(1990, 2030)]
     years_label = tk.Label(window, text = "Year:")
-    years_label.place(x = 80, y = 400)
-    combo_year = ttk.Combobox(window, values = years, state = "readonly")
-    combo_year.place(x = 80, y = 425)
+    years_label.place(x = 80, y = 300)
+    combo_year = ttk.Combobox(window, values = years, state = "disabled")
+    combo_year.place(x = 80, y = 325)
+    
+    #Bind to onYearSelected
+    combo_year.bind("<<ComboboxSelected>>", onYearSelected)
+    
+    def enableYear():
+        #Se quiere obtener los años disponibles para solo mostrar esos
+        conection = sqlite3.connect(variable_archivo.get())
+        cursor = conection.cursor()
+        #Se obtiene la ultima ves que sono a partir de tabla Track
+        cursor.execute('SELECT timeLastPlayed FROM Track')
+        results = cursor.fetchall()
+        
+        #Estan en formato Unix, se convierten
+        UnixFormat = []
+        for result in results:
+            UnixFormat.append(result[0])
+        dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
+        dtString = []
+        
+        for date in dates:
+            dtString += [date.strftime("%Y-%m-%d %H:%M:%S")]
+        
+        #print(dtString)
+        # en dtString estan todas las fechas
+        # Ahora se va a proceder a obtener solamente los años
+        
+        yearsWithTrack = []
+        for year in dtString:
+            if int(year[0:4]) in yearsWithTrack:
+                pass
+            else:
+                yearsWithTrack.append(int(year[0:4]))
+        combo_year.config(values = yearsWithTrack)
+        combo_year.config(state = "readonly")
+        
+        
+    def disableYear():
+        combo_year.config(state = "disabled")
+        
+    
     
     
     DateB = tk.Button(Inicio, text = "Select Date", command = ObtainDate)
