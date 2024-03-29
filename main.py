@@ -9,6 +9,7 @@ from tkinter import filedialog
 from datetime import datetime
 from tkinter import ttk
 from PIL import Image, ImageTk
+import sqlite3
 
 
 
@@ -45,6 +46,7 @@ def PantallaInicial(window, Inicio):
         # Actualiza la variable con la dirección del archivo seleccionado
         if archivo:
             variable_archivo.set(archivo)
+            print(variable_archivo.get())
             labelFile.config(text = "Data Base File Selected")
             
         
@@ -80,6 +82,20 @@ def PantallaInicial(window, Inicio):
                 labelResult.config(text = f"Date Selected: {currentDay} {actualMonthSelected} {currentYear} (Today)")
             else: 
                 labelResult.config(text = "One option is empty, need a complete date")
+                
+    def ObtainSongs():
+        conection = sqlite3.connect(variable_archivo.get())
+        cursor = conection.cursor()
+        cursor.execute('SELECT timeLastPlayed FROM Track')
+        results = cursor.fetchall()
+        
+        UnixFormat = []
+        for result in results:
+            UnixFormat.append(result[0])
+        
+        dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
+        
+        #print(variable_archivo.get())
     
         
     # Dias
@@ -107,6 +123,9 @@ def PantallaInicial(window, Inicio):
     
     DateB = tk.Button(Inicio, text = "Select Date", command = ObtainDate)
     DateB.place(x = 80, y = 450)
+    
+    ObtainResults = tk.Button(Inicio, text = "Obtain Results", command = ObtainSongs)
+    ObtainResults.place(x = 80, y = 550)
     
     labelResult = tk.Label(window, text = "")
     labelResult.place(x = 80, y = 475)
