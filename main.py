@@ -6,6 +6,7 @@ Esta pantalla inicial se llama en las otras instancias del programa
 
 import tkinter as tk
 from tkinter import filedialog
+from datetime import datetime
 from tkinter import ttk
 from PIL import Image, ImageTk
 
@@ -44,6 +45,7 @@ def PantallaInicial(window, Inicio):
         # Actualiza la variable con la dirección del archivo seleccionado
         if archivo:
             variable_archivo.set(archivo)
+            
         
         
     variable_archivo = tk.StringVar()
@@ -55,6 +57,14 @@ def PantallaInicial(window, Inicio):
         daySelected = combo_day.get()
         monthSelected = combo_month.get()
         yearSelected = combo_year.get()
+        
+        
+        #Muestra la fecha seleccionada
+        if daySelected != "" and monthSelected != "" and yearSelected != "":
+            labelResult.config(text = f"Date Selected: {daySelected} {monthSelected} {yearSelected}")
+        else:
+            labelResult.config(text = "One option is empty, need a complete date")
+        
         
     # Dias
     days = [str(i) for i in range(1, 32)]
@@ -72,7 +82,7 @@ def PantallaInicial(window, Inicio):
     
     
     # Years
-    years = [str(i) for i in range(1900, 2101)]
+    years = [str(i) for i in range(1990, 2030)]
     years_label = tk.Label(window, text = "Year:")
     years_label.place(x = 80, y = 400)
     combo_year = ttk.Combobox(window, values = years)
@@ -81,6 +91,9 @@ def PantallaInicial(window, Inicio):
     
     DateB = tk.Button(Inicio, text = "Select Date", command = ObtainDate)
     DateB.place(x = 80, y = 450)
+    
+    labelResult = tk.Label(window, text = "")
+    labelResult.place(x = 80, y = 475)
     
     
     # Este es el text box en el cual se va a colocar la informacoin que viene del DB
