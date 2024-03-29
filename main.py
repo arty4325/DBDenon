@@ -1,6 +1,6 @@
 """
-En el presente modulo se encuentra la pantalla inicial de tkinter
-Esta pantalla inicial se llama en las otras instancias del programa
+Programa para poder controlar una Base de Datos Denon 
+Autor: Oscar Arturo Acuna Duran
 """
 
 
@@ -26,7 +26,7 @@ Inicio = tk.Canvas(window, width = 1000, height = 700)
 Inicio.place(x = 0, y = 0)
 
 
-
+#Esta funcion destruye los label en el momento en el que se pasa a otra pantalla 
 def labelDest(List):
     if List == []:
         return []
@@ -34,13 +34,17 @@ def labelDest(List):
         (List[0]).destrou()
         labelDest(List[1:])
 
+#Pantalla inicial de Tkinter
 def PantallaInicial(window, Inicio):
+    
+    # Label que muestra el nombre de la aplicacion en grande en la interfaz 
     MainLabel = tk.Label(Inicio, text = "Denon Information DB", font = ("Arial", 20))
     MainLabel.place(x = 350, y = 50)
     
     
     #Se quiere crear un boton el cual busque en el computador los datos
     def SelectFile():
+        
         # Abre el cuadro de diálogo para seleccionar archivos
         archivo = filedialog.askopenfilename(title="Selecciona un archivo")
 
@@ -51,15 +55,18 @@ def PantallaInicial(window, Inicio):
             labelFile.config(text = "Data Base File Selected")
             
         
-        
+    # Obtiene la direccion del archivo como un string 
     variable_archivo = tk.StringVar()
     
+    # Boton que acciona Select File para abrir el buscador de archivos
     DataB = tk.Button(Inicio, command = SelectFile, text = "Search File")
     DataB.place(x = 80, y = 200)
     
     
-    
+    #Funcion que permite obtener el dia
     def ObtainDate():
+        
+        #Configuracion de dia, mes y año
         daySelected = combo_day.get()
         monthSelected = combo_month.get()
         yearSelected = combo_year.get()
@@ -69,25 +76,27 @@ def PantallaInicial(window, Inicio):
         if daySelected != "" and monthSelected != "" and yearSelected != "":
             labelResult.config(text = f"Date Selected: {daySelected} {monthSelected} {yearSelected}")
         else:
+            #Esto se ejecuta al instanciar la aplicacion
             labelText = labelResult.cget("text")
-            #print(labelText, type(labelText))
             if labelText == "":
-                # Get the current date and time
+                # Se obtiene el dia presente
                 current_date_time = datetime.now()
-                # Extract the year, month, and day as integers
+                # Se obtiene el año, mes y dia como int
                 currentYear = current_date_time.year
                 currentMonth = current_date_time.month
                 currentDay = current_date_time.day
-                #print(currentYear, currentMonth, currentDay, type(currentYear))
+                
                 months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
                 actualMonthSelected = months[currentMonth - 1]
-                
+                #Se coloca un Label con el dia presente cuando se abre la aplicacion
                 labelResult.config(text = f"Date Selected: {currentDay} {actualMonthSelected} {currentYear} (Today)")
             else: 
+                #En el caso en el que el usuario no coloque uno de los datos se muestra el siguiente mensaje
                 labelResult.config(text = "One option is empty, need a complete date")
                 
     def ObtainSongs():
         # Quiero obtener en el formato establecido la fecha
+        # Se obtiene el Label de la fecha como un string
         dateResult = labelResult.cget("text")
         separateData = dateResult.split()
         selectedDay = int(separateData[2])
@@ -96,88 +105,67 @@ def PantallaInicial(window, Inicio):
         selectedMonth = months.index(strMonth) + 1
         selectedYear = int(separateData[4])
         
-        #print(selectedDay, selectedMonth, selectedYear)
+        #A partir de este punto se tiene un int para Mes Año y Dia
+        #Se agrega un 0 en el mes si es menor a 10 por que ese es el formato de la DB
+        #Ej si es septiembre debe de ser 09 y no 9
         if selectedMonth < 10:
             finalStructure = str(selectedYear) + "-" + "0" +str(selectedMonth) + "-" + str(selectedDay)
         else:
             finalStructure = str(selectedYear) + "-" + str(selectedMonth) + "-" + str(selectedDay)
-            
         
-        
-        
+        #Se establece la conexcion a sqlite
         conection = sqlite3.connect(variable_archivo.get())
         cursor = conection.cursor()
+        #Comando que permite obtener la ultima ves que sono a partir de la tabla Track
         cursor.execute('SELECT timeLastPlayed FROM Track')
         results = cursor.fetchall()
         
+        #Los datos arrojados en timeLastPlayed estan en un formato Unix, se quiere pasar a un formato legible
         UnixFormat = []
         for result in results:
             UnixFormat.append(result[0])
         
+        #En dates estan los timeLastPlayed pero en un formato legible
         dates = [datetime.fromtimestamp(ts) for ts in UnixFormat]
-        #for date in dates:
-        #    print(date)
-        #print(dates[0])
-       
-                
-        #print(dates)
+        #Se hace un String de los datos de Dates para poder manipularlos en Python
         dtString = []
         for date in dates:
             dtString += [date.strftime("%Y-%m-%d %H:%M:%S")]
-        #dtString = dates[0].strftime("%Y-%m-%d %H:%M:%S")
         
+        #Se hace una lista de llaves para poder llevar el control en el formato Unix
         keyList = []
         for date in dtString:
             if finalStructure in date:
-                
-                print(True)
                 keyList.append(dtString.index(date))
-                #print(date)
-                
-        #print(dates)
-        #print(dtString)
-        #print(finalStructure)
-        print(keyList)
         
+        #Como lo anterior esta en Tuplas se hace TimeMarks para tenerlo en una Lista
         timeMarks = []
         for i in keyList:
-            print(results[i][0])
             timeMarks.append(results[i][0])
             
         #Ahora se van a hacer unas consultas para obtener los nombres de las canciones
         songNames = []
         placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
         cursor.execute("SELECT title, artist FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+        #La variable finalResults tiene lo que se obtuvo en cursor
         finalResults = cursor.fetchall()
         
-        for result in finalResults:
-            print(result)
         
-        #Borrar lo que esta en el textBox 
+        #Borrar lo que esta en el textBox (HACERLO)
         
+        #Se colocan los datos en el TextBox
         TextBox.config(state = 'normal')
         
         Counter = 1
         for result in finalResults:
-            print(result[0])
             subResult = result[0].split()
             finResult = subResult[2:]
-            
             finalStr = ""
-            print(finResult)
             for i in finResult:
                 finalStr += i + " "
-            print(finalStr)
-            
-            
             TextBox.insert(tk.END, str(Counter) + " - " + result[1] + " - " + finalStr + "\n")
             Counter += 1
-        
         TextBox.config(state = "disabled")
-        
-        
-            
-        print(songNames)
         
         
         
