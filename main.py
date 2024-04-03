@@ -63,7 +63,7 @@ def PantallaInicial(window, Inicio):
         conection = sqlite3.connect(variable_archivo.get())
         cursor = conection.cursor()
         #Se obtiene la ultima ves que sono a partir de tabla Track
-        cursor.execute('SELECT timeLastPlayed FROM Track')
+        cursor.execute('SELECT timeLastPlayed FROM Track WHERE isPlayed = 1')
         results = cursor.fetchall()
         
         #Estan en formato Unix, se convierten
@@ -145,7 +145,7 @@ def PantallaInicial(window, Inicio):
         conection = sqlite3.connect(variable_archivo.get())
         cursor = conection.cursor()
         #Comando que permite obtener la ultima ves que sono a partir de la tabla Track
-        cursor.execute('SELECT timeLastPlayed FROM Track')
+        cursor.execute('SELECT timeLastPlayed FROM Track WHERE isPlayed = 1')
         results = cursor.fetchall()
         
         #Los datos arrojados en timeLastPlayed estan en un formato Unix, se quiere pasar a un formato legible
@@ -177,6 +177,10 @@ def PantallaInicial(window, Inicio):
         cursor.execute("SELECT title, artist FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
         #La variable finalResults tiene lo que se obtuvo en cursor
         finalResults = cursor.fetchall()
+        
+
+        
+        
         
         
         #Borrar lo que esta en el textBox (HACERLO)
@@ -349,7 +353,7 @@ def PantallaInicial(window, Inicio):
     TextBox = tk.Text(window, width = 75, height = 25)
     TextBox.insert(tk.END, "")
     TextBox.config(state = 'disabled')
-    TextBox.place(x = 350, y = 150)
+    TextBox.place(x = 350, y = 200)
     
     
     ObtainDate()
