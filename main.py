@@ -25,6 +25,8 @@ window.resizable(False, False)
 Inicio = tk.Canvas(window, width = 1000, height = 700)
 Inicio.place(x = 0, y = 0)
 
+global showValues
+showValues = [False, False, False, False, False, False]
 
 #Esta funcion destruye los label en el momento en el que se pasa a otra pantalla 
 def labelDest(List):
@@ -57,48 +59,58 @@ def PantallaInicial(window, Inicio):
             # (FALTA) Solo aparezcan años con registro
             
             enableYear()
-        
+    
+    #En la estructura de los if hay que tirar un True para cuando se le da check
+    
     def artistCheckbox():
+        global showValues
         if checkArt.get():
-            print("Checkbox is checked")
+            showValues[0] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[0] = False
+            ObtainSongs()
             
-    def titleCheckbox():
-        if checkTit.get():
-            print("Checkbox is checked")
-        else:
-            print("Checkbox is unchecked")
             
     def remCheck():
         if checkRem.get():
-            print("Checkbox is checked")
+            showValues[1] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[1] = False
+            ObtainSongs()
     
     def yearCheck():
         if checkYear.get():
-            print("Checkbox is checked")
+            showValues[2] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[2] = False
+            ObtainSongs()
             
     def keyCheck():
         if checkKey.get():
-            print("Checkbox is checked")
+            showValues[3] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[3] = False
+            ObtainSongs()
             
     def bpmCheck():
         if checkBpm.get():
-            print("Checkbox is checked")
+            showValues[4] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[4] = False
+            ObtainSongs()
             
     def commentCheck():
         if checkComment.get():
-            print("Checkbox is checked")
+            showValues[5] = True
+            ObtainSongs()
         else:
-            print("Checkbox is unchecked")
+            showValues[5] = False
+            ObtainSongs()
     
     def obtainData():
         #Se quiere obtener los años disponibles para solo mostrar esos
@@ -165,6 +177,7 @@ def PantallaInicial(window, Inicio):
                 labelResult.config(text = "One option is empty, need a complete date")
                 
     def ObtainSongs():
+        global showValues
         # Quiero obtener en el formato establecido la fecha
         # Se obtiene el Label de la fecha como un string
         dateResult = labelResult.cget("text")
@@ -213,32 +226,125 @@ def PantallaInicial(window, Inicio):
         for i in keyList:
             timeMarks.append(results[i][0])
             
+        #IMPORTANTE DIFERENCIAR POR QUE DE AQUI COMIENZA TODO LO DISTINTO
+            
+        #Borrar lo que esta en el textBox (HACERLO)
+        #Se colocan los datos en el TextBox
+        TextBox.config(state = 'normal')
+        # Borrar todo el contenido del TextBox
+        TextBox.delete('1.0', 'end')
+        
         #Ahora se van a hacer unas consultas para obtener los nombres de las canciones
-        songNames = []
+        
+        trackName = []
         placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
-        cursor.execute("SELECT title, artist FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+        cursor.execute("SELECT title FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
         #La variable finalResults tiene lo que se obtuvo en cursor
-        finalResults = cursor.fetchall()
+        trackName += cursor.fetchall()
+        
+        
+        artistResults = []
+        if showValues[0] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, artist FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            artistResults += cursor.fetchall()
+        
+        
+        
+        remResults = []    
+        if showValues[1] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, remixer FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            remResults += cursor.fetchall()
+            
+        yearResults = []
+        if showValues[2] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, year FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            yearResults += cursor.fetchall()
+            
+        keyResults = []
+        if showValues[3] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, key FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            keyResults += cursor.fetchall()
+            
+        bpmResults = []
+        if showValues[4] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, bpm FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            bpmResults += cursor.fetchall()
+          
+        commentResults = []
+        if showValues[5] == True:
+            placeHolders = ','.join(['?' for _ in range(len(timeMarks))])
+            cursor.execute("SELECT title, comment FROM Track WHERE timeLastPlayed IN ({})".format(placeHolders), timeMarks)
+            #La variable finalResults tiene lo que se obtuvo en cursor
+            commentResults += cursor.fetchall()
+            
+        
+            
+            
         
 
         
         
         
         
-        #Borrar lo que esta en el textBox (HACERLO)
         
-        #Se colocan los datos en el TextBox
-        TextBox.config(state = 'normal')
+        
+        
         
         Counter = 1
-        for result in finalResults:
-            subResult = result[0].split()
-            finResult = subResult[2:]
+        if(len(artistResults) != 0 or len(remResults) != 0 or len(yearResults) != 0 or len(keyResults) != 0 or len(bpmResults) != 0 or len(commentResults) != 0):
             finalStr = ""
-            for i in finResult:
-                finalStr += i + " "
-            TextBox.insert(tk.END, str(Counter) + " - " + result[1] + " - " + finalStr + "\n")
-            Counter += 1
+            for i in trackName:
+                subResult = i[0].split()
+                finResult = subResult[4:]
+                finStr = ""
+                for i in finResult:
+                    finStr += i + " "
+                #print(finStr)
+                TextBox.insert(tk.END, str(Counter) + " - " + str(finStr))
+                
+                if len(artistResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(artistResults[Counter - 1][1]))
+                if len(remResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(remResults[Counter - 1][1]))
+                if len(yearResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(yearResults[Counter - 1][1]))
+                if len(keyResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(keyResults[Counter - 1][1]))
+                if len(bpmResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(bpmResults[Counter - 1][1]))
+                if len(commentResults) > 0:
+                    TextBox.insert(tk.END, " - " + str(commentResults[Counter - 1][1]))
+                
+            
+            
+            
+        
+                TextBox.insert(tk.END, "\n")
+                Counter += 1
+                
+        else:
+            finalStr = ""
+            for i in trackName:
+                subResult = i[0].split()
+                finResult = subResult[4:]
+                finStr = ""
+                for i in finResult:
+                    finStr += i + " "
+                #print(finStr)
+                TextBox.insert(tk.END, str(Counter) + " - " + str(finStr))
+                TextBox.insert(tk.END, "\n")
+                Counter += 1
+        
         TextBox.config(state = "disabled")
         
         
@@ -402,29 +508,26 @@ def PantallaInicial(window, Inicio):
     checkbox = tk.Checkbutton(window, text = "Artist", variable = checkArt, command = artistCheckbox)
     checkbox.place(x = 350, y = 150)
     
-    checkTit = tk.BooleanVar()
-    checktit = tk.Checkbutton(window, text = "Title", variable = checkTit, command = titleCheckbox)
-    checktit.place(x = 425, y = 150)
     
     checkRem = tk.BooleanVar()
     checkrem = tk.Checkbutton(window, text = "Remixer", variable = checkRem, command = remCheck)
-    checkrem.place(x = 500, y = 150)
+    checkrem.place(x = 425, y = 150)
     
     checkYear = tk.BooleanVar()
     checkyear = tk.Checkbutton(window, text = "Year", variable = checkYear, command = yearCheck)
-    checkyear.place(x = 575, y = 150)
+    checkyear.place(x = 500, y = 150)
     
     checkKey = tk.BooleanVar()
     checkkey = tk.Checkbutton(window, text = "Key", variable = checkKey, command = keyCheck)
-    checkkey.place(x = 650, y = 150)
+    checkkey.place(x = 575, y = 150)
     
     checkBpm = tk.BooleanVar()
     checkbpm = tk.Checkbutton(window, text = "BPM", variable = checkBpm, command = bpmCheck)
-    checkbpm.place(x = 725, y = 150)
+    checkbpm.place(x = 650, y = 150)
     
     checkComment = tk.BooleanVar()
     checkcomment = tk.Checkbutton(window, text = "Comment", variable = checkComment, command = commentCheck)
-    checkcomment.place(x = 800, y = 150)
+    checkcomment.place(x = 725, y = 150)
     
     
     
