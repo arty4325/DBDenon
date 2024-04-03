@@ -57,6 +57,48 @@ def PantallaInicial(window, Inicio):
             # (FALTA) Solo aparezcan años con registro
             
             enableYear()
+        
+    def artistCheckbox():
+        if checkArt.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+            
+    def titleCheckbox():
+        if checkTit.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+            
+    def remCheck():
+        if checkRem.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+    
+    def yearCheck():
+        if checkYear.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+            
+    def keyCheck():
+        if checkKey.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+            
+    def bpmCheck():
+        if checkBpm.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
+            
+    def commentCheck():
+        if checkComment.get():
+            print("Checkbox is checked")
+        else:
+            print("Checkbox is unchecked")
     
     def obtainData():
         #Se quiere obtener los años disponibles para solo mostrar esos
@@ -354,6 +396,36 @@ def PantallaInicial(window, Inicio):
     TextBox.insert(tk.END, "")
     TextBox.config(state = 'disabled')
     TextBox.place(x = 350, y = 200)
+    
+    #Aqui se van a poner las checkbox de los nuevos datos que se querian almacenar
+    checkArt = tk.BooleanVar()
+    checkbox = tk.Checkbutton(window, text = "Artist", variable = checkArt, command = artistCheckbox)
+    checkbox.place(x = 350, y = 150)
+    
+    checkTit = tk.BooleanVar()
+    checktit = tk.Checkbutton(window, text = "Title", variable = checkTit, command = titleCheckbox)
+    checktit.place(x = 425, y = 150)
+    
+    checkRem = tk.BooleanVar()
+    checkrem = tk.Checkbutton(window, text = "Remixer", variable = checkRem, command = remCheck)
+    checkrem.place(x = 500, y = 150)
+    
+    checkYear = tk.BooleanVar()
+    checkyear = tk.Checkbutton(window, text = "Year", variable = checkYear, command = yearCheck)
+    checkyear.place(x = 575, y = 150)
+    
+    checkKey = tk.BooleanVar()
+    checkkey = tk.Checkbutton(window, text = "Key", variable = checkKey, command = keyCheck)
+    checkkey.place(x = 650, y = 150)
+    
+    checkBpm = tk.BooleanVar()
+    checkbpm = tk.Checkbutton(window, text = "BPM", variable = checkBpm, command = bpmCheck)
+    checkbpm.place(x = 725, y = 150)
+    
+    checkComment = tk.BooleanVar()
+    checkcomment = tk.Checkbutton(window, text = "Comment", variable = checkComment, command = commentCheck)
+    checkcomment.place(x = 800, y = 150)
+    
     
     
     ObtainDate()
